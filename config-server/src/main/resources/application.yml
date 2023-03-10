@@ -3,6 +3,11 @@ server:
 spring:
   application:
     name: config-server
-  profiles:
-    active:
-      - native
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/yesminmarie/erudio-curso-microservice-udemy
+          default-label: master
+          search-paths:
+            - 'erudio-config-server/greeting-service*'
