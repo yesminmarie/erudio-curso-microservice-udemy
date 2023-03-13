@@ -1,6 +1,7 @@
 package io.github.yesminmarie.bookservice.controller;
 
 import io.github.yesminmarie.bookservice.model.Book;
+import io.github.yesminmarie.bookservice.proxy.CambioProxy;
 import io.github.yesminmarie.bookservice.repository.BookRepository;
 import io.github.yesminmarie.bookservice.response.Cambio;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class BookController {
     @Autowired
     private BookRepository repository;
 
+    @Autowired
+    private CambioProxy proxy;
+
     @GetMapping(value = "/{id}/{currency}")
     public Book findBook(
             @PathVariable("id") Long id,
@@ -32,22 +36,38 @@ public class BookController {
         var book = repository.getById(id);
         if(book == null) throw new RuntimeException("Book not found");
 
-        HashMap<String, String> params = new HashMap<>();
-        params.put("amount", book.getPrice().toString());
-        params.put("from", "USD");
-        params.put("to", currency);
-
-        var response = new RestTemplate()
-                .getForEntity("http://localhost:8000/cambio-service/" +
-                        "{amount}/{from}/{to}",
-                        Cambio.class,
-                        params);
-
-        var cambio = response.getBody();
+        var cambio = proxy.getCambio(book.getPrice(), "USD", currency);
 
         var port = environment.getProperty("local.server.port");
-        book.setEnvironment(port);
+        book.setEnvironment(port + " FEIGN");
         book.setPrice(cambio.getConvertedValue());
         return book;
     }
+
+//    @GetMapping(value = "/{id}/{currency}")
+//    public Book findBook(
+//            @PathVariable("id") Long id,
+//            @PathVariable("currency") String currency){
+//
+//        var book = repository.getById(id);
+//        if(book == null) throw new RuntimeException("Book not found");
+//
+//        HashMap<String, String> params = new HashMap<>();
+//        params.put("amount", book.getPrice().toString());
+//        params.put("from", "USD");
+//        params.put("to", currency);
+//
+//        var response = new RestTemplate()
+//                .getForEntity("http://localhost:8000/cambio-service/" +
+//                        "{amount}/{from}/{to}",
+//                        Cambio.class,
+//                        params);
+//
+//        var cambio = response.getBody();
+//
+//        var port = environment.getProperty("local.server.port");
+//        book.setEnvironment(port);
+//        book.setPrice(cambio.getConvertedValue());
+//        return book;
+//    }
 }
