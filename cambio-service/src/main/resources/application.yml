@@ -24,6 +24,11 @@ spring:
     schemas: cambio-service
     user: root
     password: 123
+  sleuth:
+    sampler:
+      probability: 1.0
+  #zipkin:
+    #base-url: http://localhost:9411/
 springdoc:
   show-actuator: true
   api-docs:
